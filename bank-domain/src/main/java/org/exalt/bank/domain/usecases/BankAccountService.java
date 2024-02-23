@@ -4,16 +4,26 @@ import org.exalt.bank.domain.exceptions.BalanceNotSufficientException;
 import org.exalt.bank.domain.model.BankAccount;
 
 import java.math.BigDecimal;
+import java.util.Optional;
 
 public class BankAccountService {
     public static final String ILLEGAL_ARGUMENT_EXCEPTION_MESSAGE = "The amount cannot be null or negative";
-    public static final String BALANCE_NOT_SUFFICIENT_EXCEPTION_MESSAGE = "The balance is insufficient to make the withdrawal";
+    public static final String INSUFFICIENT_FUNDS_EXCEPTION_MESSAGE = "The withdrawal amount exceeds the available balance and the authorized overdraft limit.";
 
     public BankAccount withdrawal(BankAccount account, BigDecimal amount) throws BalanceNotSufficientException {
-        validateWithdrawalAmount(account, amount);
+        if (amount == null || BigDecimal.ZERO.compareTo(amount) >= 0) {
+            throw new IllegalArgumentException(ILLEGAL_ARGUMENT_EXCEPTION_MESSAGE);
+        }
+        var overDraftLimit = Optional.ofNullable(account.overdraftLimit()).orElse(BigDecimal.ZERO);
+        var newBalance = account.balance().subtract(amount);
+
+        if (newBalance.compareTo(overDraftLimit.negate()) < 0) {
+            throw new BalanceNotSufficientException(INSUFFICIENT_FUNDS_EXCEPTION_MESSAGE);
+        }
 
         return account.copy()
-                .withBalance(account.balance().subtract(amount)).build();
+                .withBalance(newBalance)
+                .build();
     }
 
     public BankAccount deposit(BankAccount account, BigDecimal amount) {
@@ -23,15 +33,5 @@ public class BankAccountService {
 
         return account.copy()
                 .withBalance(account.balance().add(amount)).build();
-    }
-
-    private void validateWithdrawalAmount(BankAccount account, BigDecimal amount) throws BalanceNotSufficientException {
-        if (amount == null || BigDecimal.ZERO.compareTo(amount) >= 0) {
-            throw new IllegalArgumentException(ILLEGAL_ARGUMENT_EXCEPTION_MESSAGE);
-        }
-
-        if (account.balance().compareTo(amount) < 0) {
-            throw new BalanceNotSufficientException(BALANCE_NOT_SUFFICIENT_EXCEPTION_MESSAGE);
-        }
     }
 }

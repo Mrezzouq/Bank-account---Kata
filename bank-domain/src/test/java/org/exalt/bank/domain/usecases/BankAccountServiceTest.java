@@ -1,6 +1,5 @@
 package org.exalt.bank.domain.usecases;
 
-import org.assertj.core.api.ThrowableAssert;
 import org.exalt.bank.domain.enums.AccountStatus;
 import org.exalt.bank.domain.exceptions.BalanceNotSufficientException;
 import org.exalt.bank.domain.model.BankAccount;
@@ -21,8 +20,9 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.exalt.bank.domain.usecases.BankAccountService.BALANCE_NOT_SUFFICIENT_EXCEPTION_MESSAGE;
+import static org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import static org.exalt.bank.domain.usecases.BankAccountService.ILLEGAL_ARGUMENT_EXCEPTION_MESSAGE;
+import static org.exalt.bank.domain.usecases.BankAccountService.INSUFFICIENT_FUNDS_EXCEPTION_MESSAGE;
 
 @ExtendWith(MockitoExtension.class)
 class BankAccountServiceTest {
@@ -35,6 +35,7 @@ class BankAccountServiceTest {
                 .withBalance(balance)
                 .withStatus(AccountStatus.ACTIVATED)
                 .withCreatedAt(LocalDate.now())
+                .withOverdraftLimit(new BigDecimal("500"))
                 .build();
     }
 
@@ -62,27 +63,15 @@ class BankAccountServiceTest {
             assertThat(actual.balance()).isEqualTo(expected);
         }
 
-        @Test
-        void should_throw_IllegalArgumentException_when_amount_to_deposit_is_null() {
-            // Arrange
-            var buildBankAccount = buildBankAccount(UUID.randomUUID(), new BigDecimal("300"));
-
-            // Act
-            ThrowableAssert.ThrowingCallable actual = () -> bankAccountService.deposit(buildBankAccount, null);
-
-            // Assert
-            assertThatThrownBy(actual).isInstanceOf(IllegalArgumentException.class)
-                    .hasMessage(ILLEGAL_ARGUMENT_EXCEPTION_MESSAGE);
-        }
-
         @ParameterizedTest
-        @ValueSource(strings = {"-10", "0"})
-        void should_throw_IllegalArgumentException_when_amount_to_deposit_is_zero_or_negative(String input) {
+        @ValueSource(strings = {"-10", "0", "null"})
+        void should_throw_IllegalArgumentException_for_invalid_deposit_amounts(String input) {
             // Arrange
             var buildBankAccount = buildBankAccount(UUID.randomUUID(), new BigDecimal("300"));
+            var amount = "null".equals(input) ? null : new BigDecimal(input);
 
             // Act
-            ThrowableAssert.ThrowingCallable actual = () -> bankAccountService.deposit(buildBankAccount, new BigDecimal(input));
+            ThrowingCallable actual = () -> bankAccountService.deposit(buildBankAccount, amount);
 
             // Assert
             assertThatThrownBy(actual).isInstanceOf(IllegalArgumentException.class)
@@ -92,11 +81,12 @@ class BankAccountServiceTest {
 
     @Nested
     class WithdrawalTest {
+
         private static Stream<Arguments> amountWithdrawalProvider() {
             return Stream.of(
                     Arguments.of(new BigDecimal("3000"), new BigDecimal("500"), new BigDecimal("2500")),
                     Arguments.of(new BigDecimal("1000"), new BigDecimal("1000"), BigDecimal.ZERO),
-                    Arguments.of(new BigDecimal("2000"), new BigDecimal("150"), new BigDecimal("1850"))
+                    Arguments.of(new BigDecimal("2000"), new BigDecimal("2200"), new BigDecimal("-200"))
             );
         }
 
@@ -113,27 +103,15 @@ class BankAccountServiceTest {
             assertThat(actual.balance()).isEqualTo(expected);
         }
 
-        @Test
-        void should_throw_BalanceNotSufficientException_when_amount_to_withdrawal_is_great_than_balance() {
-            // Arrange
-            var buildBankAccount = buildBankAccount(UUID.randomUUID(), new BigDecimal("300"));
-
-            // Act
-            ThrowableAssert.ThrowingCallable actual = () -> bankAccountService.withdrawal(buildBankAccount, new BigDecimal("1000"));
-
-            // Assert
-            assertThatThrownBy(actual).isInstanceOf(BalanceNotSufficientException.class)
-                    .hasMessage(BALANCE_NOT_SUFFICIENT_EXCEPTION_MESSAGE);
-        }
-
         @ParameterizedTest
-        @ValueSource(strings = {"-10", "-100", "-1000"})
+        @ValueSource(strings = {"-10", "-100", "-1000", "0", "null"})
         void should_throw_IllegalArgumentException_when_amount_to_withdrawal_is_negative(String input) {
             // Arrange
             var buildBankAccount = buildBankAccount(UUID.randomUUID(), new BigDecimal("300"));
+            var amount = "null".equals(input) ? null : new BigDecimal(input);
 
             // Act
-            ThrowableAssert.ThrowingCallable actual = () -> bankAccountService.withdrawal(buildBankAccount, new BigDecimal(input));
+            ThrowingCallable actual = () -> bankAccountService.withdrawal(buildBankAccount, amount);
 
             // Assert
             assertThatThrownBy(actual).isInstanceOf(IllegalArgumentException.class)
@@ -141,16 +119,17 @@ class BankAccountServiceTest {
         }
 
         @Test
-        void should_throw_IllegalArgumentException_when_amount_to_withdrawal_is_null() {
+        void should_throw_BalanceNotSufficientException_when_withdrawal_exceeds_balance() {
             // Arrange
             var buildBankAccount = buildBankAccount(UUID.randomUUID(), new BigDecimal("300"));
 
             // Act
-            ThrowableAssert.ThrowingCallable actual = () -> bankAccountService.withdrawal(buildBankAccount, null);
+            ThrowingCallable actual = () -> bankAccountService.withdrawal(buildBankAccount, new BigDecimal("1500"));
 
             // Assert
-            assertThatThrownBy(actual).isInstanceOf(IllegalArgumentException.class)
-                    .hasMessage(ILLEGAL_ARGUMENT_EXCEPTION_MESSAGE);
+            assertThatThrownBy(actual).isInstanceOf(BalanceNotSufficientException.class)
+                    .hasMessage(INSUFFICIENT_FUNDS_EXCEPTION_MESSAGE);
+
         }
     }
 }
