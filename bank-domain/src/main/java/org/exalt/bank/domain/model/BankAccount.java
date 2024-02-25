@@ -4,73 +4,103 @@ import org.exalt.bank.domain.enums.AccountStatus;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Objects;
 import java.util.UUID;
 
-public record BankAccount(
-        UUID accountId,
-        BigDecimal balance,
-        AccountStatus status,
-        LocalDate createdAt,
-        BigDecimal overdraftLimit
-) {
+public abstract class BankAccount {
+    private final UUID accountId;
+    private final BigDecimal balance;
+    private final AccountStatus status;
+    private final LocalDate createdAt;
 
-    public static Builder builder() {
-        return new Builder();
+    protected <T extends Builder<T>> BankAccount(Builder<T> builder) {
+        this.accountId = builder.accountId;
+        this.balance = builder.balance;
+        this.status = builder.status;
+        this.createdAt = builder.createdAt;
     }
 
-    public Builder copy() {
-        return new Builder(this);
+    public abstract Builder<?> copy();
+
+    public UUID getAccountId() {
+        return accountId;
     }
 
-    public static final class Builder {
+    public BigDecimal getBalance() {
+        return balance;
+    }
+
+    public AccountStatus getStatus() {
+        return status;
+    }
+
+    public LocalDate getCreatedAt() {
+        return createdAt;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof BankAccount that)) return false;
+        return Objects.equals(accountId, that.accountId) &&
+                Objects.equals(balance, that.balance) &&
+                status == that.status &&
+                Objects.equals(createdAt, that.createdAt);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(accountId, balance, status, createdAt);
+    }
+
+    @Override
+    public String toString() {
+        return "BankAccount{" +
+                "accountId=" + accountId +
+                ", balance=" + balance +
+                ", status=" + status +
+                ", createdAt=" + createdAt +
+                '}';
+    }
+
+    public abstract static class Builder<T extends Builder<T>> {
         private UUID accountId;
         private BigDecimal balance;
         private AccountStatus status;
         private LocalDate createdAt;
-        private BigDecimal overdraftLimit;
 
-        private Builder() {
+        protected Builder() {
         }
 
-        private Builder(BankAccount bankAccount) {
-            withAccountId(bankAccount.accountId());
-            withBalance(bankAccount.balance());
-            withStatus(bankAccount.status());
-            withCreatedAt(bankAccount.createdAt());
-            withOverdraftLimit(bankAccount.overdraftLimit());
+        protected Builder(BankAccount bankAccount) {
+            withAccountId(bankAccount.accountId);
+            withBalance(bankAccount.balance);
+            withStatus(bankAccount.status);
+            withCreatedAt(bankAccount.createdAt);
         }
 
-        public Builder withAccountId(UUID accountId) {
+        protected abstract T getThis();
+
+        public T withAccountId(UUID accountId) {
             this.accountId = accountId;
-            return this;
+            return getThis();
         }
 
-        public Builder withBalance(BigDecimal balance) {
+        public T withBalance(BigDecimal balance) {
             this.balance = balance;
-            return this;
+            return getThis();
         }
 
-        public Builder withStatus(AccountStatus status) {
+        public T withStatus(AccountStatus status) {
             this.status = status;
-            return this;
+            return getThis();
         }
 
-        public Builder withCreatedAt(LocalDate createdAt) {
+        public T withCreatedAt(LocalDate createdAt) {
             this.createdAt = createdAt;
-            return this;
+            return getThis();
         }
 
-        public Builder withOverdraftLimit(BigDecimal overdraftLimit) {
-            this.overdraftLimit = overdraftLimit;
-            return this;
-        }
-
-        public BankAccount build() {
-            return new BankAccount(accountId,
-                    balance,
-                    status,
-                    createdAt,
-                    overdraftLimit);
-        }
+        public abstract BankAccount build();
     }
 }
