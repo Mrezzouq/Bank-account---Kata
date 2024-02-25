@@ -4,6 +4,7 @@ import org.exalt.bank.domain.enums.AccountStatus;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -12,12 +13,14 @@ public abstract class BankAccount {
     private final BigDecimal balance;
     private final AccountStatus status;
     private final LocalDate createdAt;
+    private final List<AccountOperation> accountOperations;
 
     protected <T extends Builder<T>> BankAccount(Builder<T> builder) {
         this.accountId = builder.accountId;
         this.balance = builder.balance;
         this.status = builder.status;
         this.createdAt = builder.createdAt;
+        this.accountOperations = builder.accountOperations;
     }
 
     public abstract Builder<?> copy();
@@ -38,6 +41,10 @@ public abstract class BankAccount {
         return createdAt;
     }
 
+    public List<AccountOperation> getAccountOperations() {
+        return accountOperations;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -45,12 +52,13 @@ public abstract class BankAccount {
         return Objects.equals(accountId, that.accountId) &&
                 Objects.equals(balance, that.balance) &&
                 status == that.status &&
-                Objects.equals(createdAt, that.createdAt);
+                Objects.equals(createdAt, that.createdAt) &&
+                Objects.equals(accountOperations, that.accountOperations);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(accountId, balance, status, createdAt);
+        return Objects.hash(accountId, balance, status, createdAt, accountOperations);
     }
 
     @Override
@@ -60,6 +68,7 @@ public abstract class BankAccount {
                 ", balance=" + balance +
                 ", status=" + status +
                 ", createdAt=" + createdAt +
+                ", accountOperations=" + accountOperations +
                 '}';
     }
 
@@ -68,6 +77,7 @@ public abstract class BankAccount {
         private BigDecimal balance;
         private AccountStatus status;
         private LocalDate createdAt;
+        private List<AccountOperation> accountOperations;
 
         protected Builder() {
         }
@@ -77,6 +87,7 @@ public abstract class BankAccount {
             withBalance(bankAccount.balance);
             withStatus(bankAccount.status);
             withCreatedAt(bankAccount.createdAt);
+            withAccountOperations(bankAccount.accountOperations);
         }
 
         protected abstract T getThis();
@@ -98,6 +109,11 @@ public abstract class BankAccount {
 
         public T withCreatedAt(LocalDate createdAt) {
             this.createdAt = createdAt;
+            return getThis();
+        }
+
+        public T withAccountOperations(List<AccountOperation> accountOperations) {
+            this.accountOperations = accountOperations;
             return getThis();
         }
 

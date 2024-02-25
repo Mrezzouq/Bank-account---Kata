@@ -118,7 +118,7 @@ class BankAccountServiceTest {
                     Arguments.of(buildCurrentAccount(new BigDecimal("3000")), new BigDecimal("500"), new BigDecimal("2500")),
                     Arguments.of(buildCurrentAccount(new BigDecimal("1000")), new BigDecimal("1000"), BigDecimal.ZERO),
                     Arguments.of(buildCurrentAccount(new BigDecimal("2000")), new BigDecimal("2200"), new BigDecimal("-200")),
-                    Arguments.of(buildSavingAccount(new BigDecimal("2000")), new BigDecimal("2001"), new BigDecimal("1800"))
+                    Arguments.of(buildSavingAccount(new BigDecimal("2000")), new BigDecimal("200"), new BigDecimal("1800"))
             );
         }
 

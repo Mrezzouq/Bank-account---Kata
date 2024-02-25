@@ -40,7 +40,7 @@ public class CurrentAccount extends BankAccount {
     public String toString() {
         return "CurrentAccount{" +
                 "overdraftLimit=" + overdraftLimit +
-                '}';
+                '}' + super.toString();
     }
 
     public static final class Builder extends BankAccount.Builder<Builder> {

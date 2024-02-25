@@ -40,7 +40,7 @@ public class SavingAccount extends BankAccount {
     public String toString() {
         return "SavingAccount{" +
                 "depositLimit=" + depositLimit +
-                '}';
+                '}' + super.toString();
     }
 
     public static final class Builder extends BankAccount.Builder<Builder> {
