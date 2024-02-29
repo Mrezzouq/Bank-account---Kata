@@ -1,4 +1,4 @@
-package com.exaltit.digitalbank;
+package org.exalt.bank;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

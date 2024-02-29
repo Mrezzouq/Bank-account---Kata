@@ -1,3 +1,4 @@
-rootProject.name = 'digital-bank'
+rootProject.name = 'mouad-rezzouq-bank-account-v2-5449319e-ec29-448b-95e0-c7fc2ee254c8'
 include 'bank-domain'
+include 'bank-infra'
 

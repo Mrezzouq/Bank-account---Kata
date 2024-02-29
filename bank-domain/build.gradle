@@ -2,10 +2,8 @@ plugins {
     id 'java'
 }
 
-group = 'org.exalt.bank.domain'
-version = '0.0.1-SNAPSHOT'
-
 repositories {
+    mavenLocal()
     mavenCentral()
 }
 
