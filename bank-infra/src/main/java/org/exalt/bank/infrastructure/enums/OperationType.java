@@ -1,4 +1,4 @@
-package org.exalt.bank.infrstructure.enums;
+package org.exalt.bank.infrastructure.enums;
 
 public enum OperationType {
     DEPOSIT, WITHDRAWAL, UNKNOWN;

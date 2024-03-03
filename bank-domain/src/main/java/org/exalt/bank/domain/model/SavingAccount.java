@@ -20,11 +20,6 @@ public class SavingAccount extends BankAccount {
     }
 
     @Override
-    public Builder copy() {
-        return new Builder(this);
-    }
-
-    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof SavingAccount that)) return false;
@@ -49,11 +44,6 @@ public class SavingAccount extends BankAccount {
         private Builder() {
         }
 
-        private Builder(SavingAccount savingAccount) {
-            super(savingAccount);
-            withDepositLimit(savingAccount.depositLimit);
-        }
-
         public Builder withDepositLimit(BigDecimal depositLimit) {
             this.depositLimit = depositLimit;
             return this;
@@ -68,7 +58,5 @@ public class SavingAccount extends BankAccount {
         public SavingAccount build() {
             return new SavingAccount(this);
         }
-
-
     }
 }

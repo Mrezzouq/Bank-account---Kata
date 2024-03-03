@@ -1,20 +1,19 @@
-package org.exalt.bank.infrstructure.entities;
+package org.exalt.bank.infrastructure.entities;
 
 import jakarta.persistence.Entity;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.exalt.bank.domain.model.CurrentAccount;
 
 import java.math.BigDecimal;
 import java.util.Objects;
 
+@Setter
+@Getter
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-@Getter
-@Setter
 public class CurrentAccountEntity extends BankAccountEntity {
     private BigDecimal overdraftLimit;
 
@@ -36,9 +35,5 @@ public class CurrentAccountEntity extends BankAccountEntity {
         return "CurrentAccountEntity{" +
                 "overdraftLimit=" + overdraftLimit +
                 '}' + super.toString();
-    }
-
-    public CurrentAccount toSavingAccount(CurrentAccount.Builder builder) {
-        return this.toBankAccount(builder).withOverdraftLimit(this.overdraftLimit).build();
     }
 }

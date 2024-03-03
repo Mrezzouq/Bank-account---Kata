@@ -1,4 +1,4 @@
-package org.exalt.bank.infrstructure.enums;
+package org.exalt.bank.infrastructure.enums;
 
 public enum AccountStatus {
     CREATED, ACTIVATED, SUSPENDED, UNKNOWN;

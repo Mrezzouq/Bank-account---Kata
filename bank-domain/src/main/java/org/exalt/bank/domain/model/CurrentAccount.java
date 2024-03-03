@@ -20,11 +20,6 @@ public class CurrentAccount extends BankAccount {
     }
 
     @Override
-    public Builder copy() {
-        return new Builder(this);
-    }
-
-    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof CurrentAccount that)) return false;
@@ -47,11 +42,6 @@ public class CurrentAccount extends BankAccount {
         private BigDecimal overdraftLimit;
 
         private Builder() {
-        }
-
-        private Builder(CurrentAccount currentAccount) {
-            super(currentAccount);
-            withOverdraftLimit(currentAccount.overdraftLimit);
         }
 
         public Builder withOverdraftLimit(BigDecimal overdraftLimit) {

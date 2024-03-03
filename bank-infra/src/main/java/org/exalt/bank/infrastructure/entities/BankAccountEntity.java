@@ -1,12 +1,11 @@
-package org.exalt.bank.infrstructure.entities;
+package org.exalt.bank.infrastructure.entities;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.exalt.bank.domain.model.BankAccount;
-import org.exalt.bank.infrstructure.enums.AccountStatus;
+import org.exalt.bank.infrastructure.enums.AccountStatus;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -50,16 +49,5 @@ public abstract class BankAccountEntity {
                 ", createdAt=" + createdAt +
                 ", accountOperations=" + accountOperations +
                 '}';
-    }
-
-    public <T extends BankAccount.Builder<T>> T toBankAccount(T builder) {
-        return builder
-                .withAccountId(this.accountId)
-                .withBalance(this.balance)
-                .withStatus(this.getStatus().toDomainAccountStatus())
-                .withCreatedAt(this.createdAt)
-                .withAccountOperations(this.accountOperations.stream()
-                        .map(AccountOperationEntity::toAccountOperation)
-                        .toList());
     }
 }

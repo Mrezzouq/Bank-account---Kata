@@ -1,48 +1,46 @@
 package org.exalt.bank.domain.usecases;
 
+import org.exalt.bank.domain.exceptions.BankAccountNotFoundException;
 import org.exalt.bank.domain.exceptions.BankOperationsException;
-import org.exalt.bank.domain.model.BankAccount;
-import org.exalt.bank.domain.model.CurrentAccount;
-import org.exalt.bank.domain.model.SavingAccount;
+import org.exalt.bank.domain.model.BankAccountOperationResult;
+import org.exalt.bank.domain.port.in.BankAccountOperationUseCase;
+import org.exalt.bank.domain.port.out.BankAccountOperationPort;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
-public class BankAccountService {
-    public static final String ILLEGAL_ARGUMENT_EXCEPTION_MESSAGE = "The amount cannot be null or negative";
-    public static final String INSUFFICIENT_FUNDS_EXCEPTION_MESSAGE = "The withdrawal amount exceeds the available balance and the authorized overdraft limit.";
-    public static final String DEPOSIT_EXCEEDS_LIMIT_EXCEPTION_MESSAGE = "Deposit exceeds the maximum allowed deposit limit for SavingAccount.";
+public class BankAccountService implements BankAccountOperationUseCase {
+    static final String ACCOUNT_NOT_FOUND_EXCEPTION_MESSAGE = "bank account not found";
+    static final String OPERATION_FAILED_EXCEPTION_MESSAGE = "Operation failed due to a bank operation error";
+    private static final Logger LOGGER = LoggerFactory.getLogger(BankAccountService.class);
+    private final BankAccountOperationPort bankAccountOperationPort;
 
-    public BankAccount withdrawal(BankAccount account, BigDecimal amount) throws BankOperationsException {
-        if (amount == null || BigDecimal.ZERO.compareTo(amount) >= 0) {
-            throw new IllegalArgumentException(ILLEGAL_ARGUMENT_EXCEPTION_MESSAGE);
-        }
-        var overDraftLimit = BigDecimal.ZERO;
-        if (account instanceof CurrentAccount currentAccount) overDraftLimit = currentAccount.getOverdraftLimit();
-        var newBalance = account.getBalance().subtract(amount);
-
-        if (newBalance.compareTo(overDraftLimit.negate()) < 0) {
-            throw new BankOperationsException(INSUFFICIENT_FUNDS_EXCEPTION_MESSAGE);
-        }
-
-        return account.copy()
-                .withBalance(newBalance)
-                .build();
+    public BankAccountService(BankAccountOperationPort bankAccountOperationPort) {
+        this.bankAccountOperationPort = bankAccountOperationPort;
     }
 
-    public BankAccount deposit(BankAccount account, BigDecimal amount) {
-        if (amount == null || BigDecimal.ZERO.compareTo(amount) >= 0) {
-            throw new IllegalArgumentException(ILLEGAL_ARGUMENT_EXCEPTION_MESSAGE);
+    @Override
+    public BankAccountOperationResult withdrawal(UUID accountId, BigDecimal amount) {
+        try {
+            return this.bankAccountOperationPort.withdrawal(accountId, amount);
+        } catch (BankAccountNotFoundException e) {
+            LOGGER.warn("Bank account not found for ID {}", accountId);
+            return new BankAccountOperationResult.Failure(ACCOUNT_NOT_FOUND_EXCEPTION_MESSAGE);
         }
+    }
 
-        if (account instanceof SavingAccount savingAccount) {
-            var depositLimit = savingAccount.getDepositLimit();
-            var newBalance = account.getBalance().add(amount);
-            if (newBalance.compareTo(depositLimit) > 0) {
-                throw new BankOperationsException(DEPOSIT_EXCEEDS_LIMIT_EXCEPTION_MESSAGE);
-            }
+    @Override
+    public BankAccountOperationResult deposit(UUID accountId, BigDecimal amount) {
+        try {
+            return this.bankAccountOperationPort.deposit(accountId, amount);
+        } catch (BankOperationsException e) {
+            LOGGER.warn("Operation failed for bank account with ID {}: {}", accountId, e.getMessage());
+            return new BankAccountOperationResult.Failure(OPERATION_FAILED_EXCEPTION_MESSAGE);
+        } catch (BankAccountNotFoundException e) {
+            LOGGER.warn("Bank account not found for ID {}", accountId);
+            return new BankAccountOperationResult.Failure(ACCOUNT_NOT_FOUND_EXCEPTION_MESSAGE);
         }
-
-        return account.copy()
-                .withBalance(account.getBalance().add(amount)).build();
     }
 }

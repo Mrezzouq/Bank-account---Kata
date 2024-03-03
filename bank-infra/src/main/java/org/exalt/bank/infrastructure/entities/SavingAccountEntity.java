@@ -1,11 +1,10 @@
-package org.exalt.bank.infrstructure.entities;
+package org.exalt.bank.infrastructure.entities;
 
 import jakarta.persistence.Entity;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.exalt.bank.domain.model.SavingAccount;
 
 import java.math.BigDecimal;
 import java.util.Objects;
@@ -36,9 +35,5 @@ public class SavingAccountEntity extends BankAccountEntity {
         return "SavingAccountEntity{" +
                 "depositLimit=" + depositLimit +
                 '}' + super.toString();
-    }
-
-    public SavingAccount toSavingAccount(SavingAccount.Builder builder) {
-        return this.toBankAccount(builder).withDepositLimit(this.depositLimit).build();
     }
 }

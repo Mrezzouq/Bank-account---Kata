@@ -1,8 +1,11 @@
 package org.exalt.bank.domain.usecases;
 
 import org.exalt.bank.domain.enums.OperationType;
+import org.exalt.bank.domain.exceptions.AccountOperationsException;
 import org.exalt.bank.domain.model.AccountOperation;
 import org.exalt.bank.domain.model.BankAccount;
+import org.exalt.bank.domain.model.BankAccountStatement;
+import org.exalt.bank.domain.port.out.BankAccountStatementPort;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -11,18 +14,21 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class BankAccountStatementServiceTest {
-
+    private static final LocalDateTime OPERATION_DATE_TIME = LocalDateTime.now();
     @Mock
-    BankAccount bankAccount;
+    private BankAccountStatementPort bankAccountStatementPort;
+    @Mock
+    private BankAccount bankAccount;
     @InjectMocks
     private BankAccountStatementService bankAccountStatementService;
 
@@ -39,13 +45,13 @@ class BankAccountStatementServiceTest {
     @Test
     void should_return_empty_list_when_account_has_no_operations() {
         // Arrange
-        when(bankAccount.getAccountOperations()).thenReturn(Collections.emptyList());
+        when(bankAccountStatementPort.retrieveAccountOperations(any(), any())).thenThrow(new AccountOperationsException("no operations found"));
 
         // Act
-        var actual = bankAccountStatementService.retrieveAccountOperations(bankAccount, LocalDateTime.now());
+        var actual = bankAccountStatementService.retrieveAccountOperations(any(), any());
 
         // Assert
-        assertThat(actual.getAccountOperations()).isEmpty();
+        assertThat(actual).isEmpty();
     }
 
     @Test
@@ -57,44 +63,15 @@ class BankAccountStatementServiceTest {
         var buildFirstCurrentOperation = buildAccountOperation("CURRENT", OperationType.DEPOSIT, operationDate);
         var buildSecondCurrentOperation = buildAccountOperation("CURRENT", OperationType.WITHDRAWAL, operationDate);
         var accountOperations = List.of(buildFirstSavingOperation, buildSecondSavingOperation, buildFirstCurrentOperation, buildSecondCurrentOperation);
-        when(bankAccount.getAccountOperations()).thenReturn(accountOperations);
+        when(bankAccountStatementPort.retrieveAccountOperations(any(), any())).thenReturn(accountOperations);
 
         // Act
-        var actual = bankAccountStatementService.retrieveAccountOperations(bankAccount, LocalDateTime.now());
+        var actual = bankAccountStatementService.retrieveAccountOperations(any(), any());
 
         // Assert
-        assertThat(actual.getAccountOperations()).containsExactlyInAnyOrderElementsOf(accountOperations);
-    }
-
-    @Test
-    void should_return_empty_list_when_operations_are_outside_date_range() {
-        // Arrange
-        var operationDate = LocalDateTime.now().minusDays(10);
-        var buildFirstSavingOperation = buildAccountOperation("SAVING", OperationType.DEPOSIT, operationDate);
-        var buildSecondCurrentOperation = buildAccountOperation("CURRENT", OperationType.WITHDRAWAL, operationDate);
-        var accountOperations = List.of(buildFirstSavingOperation, buildSecondCurrentOperation);
-        when(bankAccount.getAccountOperations()).thenReturn(accountOperations);
-
-        // Act
-        var actual = bankAccountStatementService.retrieveAccountOperations(bankAccount, LocalDateTime.now().plusDays(100));
-
-        // Assert
-        assertThat(actual.getAccountOperations()).isEmpty();
-    }
-
-    @Test
-    void should_correctly_sort_operations_in_descending_order() {
-        // Arrange
-        var buildFirstSavingOperation = buildAccountOperation("SAVING", OperationType.DEPOSIT, LocalDateTime.now().minusDays(13));
-        var buildSecondCurrentOperation = buildAccountOperation("CURRENT", OperationType.WITHDRAWAL, LocalDateTime.now().minusDays(12));
-        var accountOperations = List.of(buildFirstSavingOperation, buildSecondCurrentOperation);
-        when(bankAccount.getAccountOperations()).thenReturn(accountOperations);
-
-        // Act
-        var actual = bankAccountStatementService.retrieveAccountOperations(bankAccount, LocalDateTime.now());
-
-        //Assert
-        assertThat(actual.getAccountOperations().get(0)).isEqualTo(buildSecondCurrentOperation);
-        assertThat(actual.getAccountOperations().get(1)).isEqualTo(buildFirstSavingOperation);
+        var expected = BankAccountStatement.builder().withAccountOperations(accountOperations)
+                .withAmountAtIssueDate(BigDecimal.ZERO)
+                .build();
+        assertThat(actual).isEqualTo(Optional.of(expected));
     }
 }

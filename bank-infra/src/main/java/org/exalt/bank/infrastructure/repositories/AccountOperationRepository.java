@@ -1,6 +1,6 @@
-package org.exalt.bank.infrstructure.repositories;
+package org.exalt.bank.infrastructure.repositories;
 
-import org.exalt.bank.infrstructure.entities.AccountOperationEntity;
+import org.exalt.bank.infrastructure.entities.AccountOperationEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.UUID;

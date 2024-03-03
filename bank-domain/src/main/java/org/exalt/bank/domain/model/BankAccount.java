@@ -23,8 +23,6 @@ public abstract class BankAccount {
         this.accountOperations = builder.accountOperations;
     }
 
-    public abstract Builder<?> copy();
-
     public UUID getAccountId() {
         return accountId;
     }
@@ -80,14 +78,6 @@ public abstract class BankAccount {
         private List<AccountOperation> accountOperations;
 
         protected Builder() {
-        }
-
-        protected Builder(BankAccount bankAccount) {
-            withAccountId(bankAccount.accountId);
-            withBalance(bankAccount.balance);
-            withStatus(bankAccount.status);
-            withCreatedAt(bankAccount.createdAt);
-            withAccountOperations(bankAccount.accountOperations);
         }
 
         protected abstract T getThis();
