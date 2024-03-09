@@ -1,8 +1,6 @@
 package org.exalt.bank.infrastructure.entities;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -22,6 +20,7 @@ public class AccountOperationEntity {
     private UUID operationId;
     private LocalDateTime operationDateTime;
     private BigDecimal amount;
+    @Enumerated(EnumType.STRING)
     private OperationType operationType;
     private String accountType;
     @ManyToOne

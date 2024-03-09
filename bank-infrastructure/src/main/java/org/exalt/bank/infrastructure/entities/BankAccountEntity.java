@@ -23,6 +23,7 @@ public abstract class BankAccountEntity {
     @Id
     private UUID accountId;
     private BigDecimal balance;
+    @Enumerated(EnumType.STRING)
     private AccountStatus status;
     private LocalDate createdAt;
     @OneToMany(mappedBy = "bankAccount", fetch = FetchType.LAZY)
